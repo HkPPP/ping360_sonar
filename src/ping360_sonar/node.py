@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from math import cos, pi, sin
 
@@ -10,8 +10,8 @@ from dynamic_reconfigure.server import Server
 from sensor_msgs.msg import Image
 from sensor_msgs.msg import LaserScan
 
-from ping360_sonar.cfg import sonarConfig
-from ping360_sonar.msg import SonarEcho
+from cfg import sonarConfig
+from msg import SonarEcho
 from sensor import Ping360
 
 # Global Variables

@@ -44,7 +44,7 @@ class Serial:
         self._sample_period = 0
         self._transmit_frequency = 100
         self._number_of_samples = 10
-        self._data = "".join([chr(0) for _ in xrange(self._number_of_samples)])
+        self._data = "".join([chr(0) for _ in range(self._number_of_samples)])
         self._data_length = 10
 
         self._noise = perlin.noise(400, 50, 50)
