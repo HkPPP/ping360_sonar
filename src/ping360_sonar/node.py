@@ -151,8 +151,8 @@ def main():
     image = np.zeros((imgSize, imgSize, 1), np.uint8)
 
     # Initial the LaserScan Intensities & Ranges
-    ranges = [0]
-    intensities = [0]
+    ranges = []
+    intensities = []
 
     # Center point coordinates
     center = (float(imgSize / 2), float(imgSize / 2))
@@ -182,12 +182,12 @@ def main():
                     distance = calculateRange(
                         (1 + detectedIndex), samplePeriod, speedOfSound)
                     if distance >= 0.75 and distance <= sonarRange:
-                        ranges[0] = distance
-                        intensities[0] = detectedIntensity
+                        ranges.append(round(distance, 3))
+                        intensities.append(detectedIntensity)
                         if debug:
                             print("Object at {} grad : {}m - {}%".format(angle,
-                                                                         ranges[0],
-                                                                         float(intensities[0] * 100 / 255)))
+                                                                         distance,
+                                                                         float(detectedIntensity * 100 / 255)))
                         break
             # Contruct and publish Sonar scan msg
             scanDataMsg = generateScanMsg(ranges, intensities, sonarRange, step, maxAngle, minAngle)
@@ -217,6 +217,8 @@ def main():
 
         angle += sign * step
         if angle >= maxAngle:
+            ranges = []
+            intensities = []
             if not oscillate:
                 angle = minAngle
             else:
@@ -224,6 +226,8 @@ def main():
                 sign = -1
 
         if angle <= minAngle and oscillate:
+            ranges = []
+            intensities = []
             sign = 1
             angle = minAngle
 

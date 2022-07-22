@@ -9,7 +9,7 @@ from brping import pingmessage
 from collections import deque
 
 import os
-if os.getenv('emulated_sonar') == 'true':
+if os.getenv('emulated_sonar').lower() == 'true':
     from . import Emulator as serial
 else:
     import serial
