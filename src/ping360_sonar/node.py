@@ -312,11 +312,11 @@ def calculateRange(numberOfSamples, samplePeriod, speedOfSound, _samplePeriodTic
 
 
 def calculateSamplePeriod(distance, numberOfSamples, speedOfSound, _samplePeriodTickDuration=25e-9):
-    # type: (float, int, int, float) -> float
+    # type: (float, int, int, float) -> int
     """
       Calculate the sample period based in the new range
      """
-    return 2 * distance / (numberOfSamples * speedOfSound * _samplePeriodTickDuration)
+    return int(2 * distance / (numberOfSamples * speedOfSound * _samplePeriodTickDuration))
 
 
 def adjustTransmitDuration(distance, samplePeriod, speedOfSound, _firmwareMinTransmitDuration=5):
@@ -334,8 +334,8 @@ def adjustTransmitDuration(distance, samplePeriod, speedOfSound, _firmwareMinTra
         float: Transmit duration
      """
     duration = 8000 * distance / speedOfSound
-    transmit_duration = max(
-        2.5 * getSamplePeriod(samplePeriod) / 1000, duration)
+    transmit_duration = int(max(
+        2.5 * getSamplePeriod(samplePeriod) / 1000, duration))
     return max(_firmwareMinTransmitDuration, min(transmitDurationMax(samplePeriod), transmit_duration))
 
 
@@ -347,9 +347,9 @@ def transmitDurationMax(samplePeriod, _firmwareMaxTransmitDuration=500):
     The maximum transmit duration is equal to 64 * the sample period in microseconds
 
     Returns:
-        float: The maximum transmit duration possible
+        int: The maximum transmit duration possible
     """
-    return min(_firmwareMaxTransmitDuration, getSamplePeriod(samplePeriod) * 64e6)
+    return int(min(_firmwareMaxTransmitDuration, getSamplePeriod(samplePeriod) * 64e6))
 
 
 def getSamplePeriod(samplePeriod, _samplePeriodTickDuration=25e-9):
