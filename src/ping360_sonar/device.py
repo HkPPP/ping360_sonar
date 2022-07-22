@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # device.py
 # A device API for devices implementing Blue Robotics ping-protocol
@@ -10,7 +10,7 @@ from collections import deque
 
 import os
 if os.getenv('emulated_sonar') == 'true':
-    import Emulator as serial
+    from . import Emulator as serial
 else:
     import serial
 

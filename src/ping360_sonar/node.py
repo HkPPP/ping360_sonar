@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from math import cos, pi, sin
 
@@ -12,7 +12,7 @@ from sensor_msgs.msg import LaserScan
 
 from ping360_sonar.cfg import sonarConfig
 from ping360_sonar.msg import SonarEcho
-from sensor import Ping360
+from .sensor import Ping360
 
 # Global Variables
 
@@ -91,10 +91,10 @@ def main():
     enableScanTopic = rospy.get_param('~enableScanTopic', True)
     enableDataTopic = rospy.get_param('~enableDataTopic', True)
 
+    oscillate = int(rospy.get_param('~oscillate', True))
     maxAngle = int(rospy.get_param('~maxAngle', 400))  # 0-400
     minAngle = int(rospy.get_param('~minAngle', 0))  # 0-400
     FOV = maxAngle - minAngle  # The sonars field of view
-    oscillate = int(rospy.get_param('~oscillate', True))
     sign = 1
 
     # Output and ROS parameters
