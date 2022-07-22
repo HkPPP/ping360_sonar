@@ -4,7 +4,7 @@ import errno
 import math
 import numpy as np
 import random
-import perlin
+from . import perlin
 
 verbose = False
 payload_dict = definitions.payload_dict_all

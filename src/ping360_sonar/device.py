@@ -10,7 +10,7 @@ from collections import deque
 
 import os
 if os.getenv('emulated_sonar') == 'true':
-    import Emulator as serial
+    from . import Emulator as serial
 else:
     import serial
 

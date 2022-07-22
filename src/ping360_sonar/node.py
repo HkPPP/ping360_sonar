@@ -10,9 +10,9 @@ from dynamic_reconfigure.server import Server
 from sensor_msgs.msg import Image
 from sensor_msgs.msg import LaserScan
 
-from cfg import sonarConfig
-from msg import SonarEcho
-from sensor import Ping360
+from ping360_sonar.cfg import sonarConfig
+from ping360_sonar.msg import SonarEcho
+from .sensor import Ping360
 
 # Global Variables
 
