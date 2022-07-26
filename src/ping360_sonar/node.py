@@ -99,6 +99,8 @@ def main():
 
     # Output and ROS parameters
     step = int(rospy.get_param('~step', 1))
+    total_steps = FOV // step
+    current_step = 0
     imgSize = int(rospy.get_param('~imgSize', 500))
     queue_size = int(rospy.get_param('~queueSize', 1))
 
@@ -153,6 +155,9 @@ def main():
     # Initial the LaserScan Intensities & Ranges
     ranges = []
     intensities = []
+    for _ in range(total_steps):
+        ranges.append(-1)
+        intensities.append(-1)
 
     # Center point coordinates
     center = (float(imgSize / 2), float(imgSize / 2))
@@ -175,15 +180,15 @@ def main():
         # Prepare scan msg
         if enableScanTopic:
             # Get the first high intensity value
-            for detectedIntensity in data:
+            for detectedIndex, detectedIntensity in enumerate(data):
                 if detectedIntensity >= threshold:
-                    detectedIndex = data.index(detectedIntensity)
                     # The index+1 represents the number of samples which then can be used to deduce the range
                     distance = calculateRange(
                         (1 + detectedIndex), samplePeriod, speedOfSound)
                     if distance >= 0.75 and distance <= sonarRange:
-                        ranges.append(round(distance, 3))
-                        intensities.append(detectedIntensity)
+                        ranges[current_step] = (round(distance, 3))
+                        intensities[current_step] = (detectedIntensity)
+                        current_step += 1
                         if debug:
                             print("Object at {} grad : {}m - {}%".format(angle,
                                                                          distance,
@@ -217,8 +222,7 @@ def main():
 
         angle += sign * step
         if angle >= maxAngle:
-            ranges = []
-            intensities = []
+            current_step = 0
             if not oscillate:
                 angle = minAngle
             else:
@@ -226,8 +230,7 @@ def main():
                 sign = -1
 
         if angle <= minAngle and oscillate:
-            ranges = []
-            intensities = []
+            current_step = 0
             sign = 1
             angle = minAngle
 
