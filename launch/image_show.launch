@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="ping360_sonar" type="image_show.py" name="image_show" />
+</launch>   
