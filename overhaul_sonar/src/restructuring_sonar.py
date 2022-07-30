@@ -154,3 +154,7 @@ class Ping360_Node():
 
             self.scan.header.stamp =
             self.scan_pub.publish(self.scan)
+
+    # TODO: fix the sonar below
+    # TODO: fix weird publish image implementation
+    # TODO: add time stamp to messages
