@@ -129,11 +129,13 @@ class SonarInterface:
         # microseconds to seconds
         return self.transmit_duration / 1e6
 
+    def fullScan(self):
+        return (self.angle_min == -200)
+
     def updateAngle(self):
         self.angle += self.angle_step
 
-        if self.angle_min == -200:
-            # full scan
+        if self.fullScan():
             end_turn = self.angle + self.angle_step > self.angle_max
             if self.angle > self.angle_max:
                 self.angle = self.angle_min

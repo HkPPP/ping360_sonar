@@ -1,11 +1,7 @@
 #!/usr/bin/env python3
 
-from math import cos, pi, sin
-
-import numpy as np
 import rospy
 
-from cv_bridge import CvBridge, CvBridgeError
 from dynamic_reconfigure.server import Server
 from sensor_msgs.msg import Image
 from sensor_msgs.msg import LaserScan
@@ -27,7 +23,7 @@ class Ping360_Node():
         if self.publish_image:
             self.image_pub = rospy.Publisher(
                 "/ping360_node/sonar/images", Image, queue_size=1)
-            self.image_timer = create_timer(self.get_parameter('image_rate').value / 1000, self.publishImage)
+            rospy.Timer(rospy.Duration(self.image_rate / 1000), self.publishImage)
         if self.publish_scan:
             self.scan_pub = rospy.Publisher("/ping360_node/sonar/data",
                                             SonarEcho, queue_size=1)
@@ -113,7 +109,7 @@ class Ping360_Node():
         """
         self.echo.angle = self.sonar.currentAngle()
         self.echo.intensities = self.sonar.data
-        self.echo.header.stamp =
+        self.echo.header.stamp = rospy.Time.now()
         self.echo_pub.publish(self.echo)
 
     def publishScan(self, end_turn):
@@ -139,22 +135,33 @@ class Ping360_Node():
                     self.scan.intensities = self.sonar.data[i] / 255.
                     break
 
-        if end_turn:
-            if not self.sonar.fullScan():
-                if self.sonar.angleStep() < 0:
-                    # now going negative: scan was positive
-                    self.scan.angle_max = sonar.angleMax()
-                    self.scan.angle_min = sonar.angleMin()
-                else:
-                    # now going positive: scan was negative
-                    self.scan.angle_max = sonar.angleMin()
-                    self.scan.angle_min = sonar.angleMax()
-                self.scan.angle_increment = -sonar.angleStep()
-                self.scan.angle_max -= self.scan.angle_increment
+        if end_turn and not self.sonar.fullScan():
+            if self.sonar.angleStep() < 0:
+                # now going negative: scan was positive
+                self.scan.angle_max = self.sonar.angleMax()
+                self.scan.angle_min = self.sonar.angleMin()
+            else:
+                # now going positive: scan was negative
+                self.scan.angle_max = self.sonar.angleMin()
+                self.scan.angle_min = self.sonar.angleMax()
+            self.scan.angle_increment = -self.sonar.angleStep()
+            self.scan.angle_max -= self.scan.angle_increment
 
-            self.scan.header.stamp =
+            self.scan.header.stamp = rospy.Time.now()
             self.scan_pub.publish(self.scan)
 
-    # TODO: fix the sonar below
-    # TODO: fix weird publish image implementation
-    # TODO: add time stamp to messages
+    def publishImage(self):
+        self.image.header.stamp = rospy.Time.now()
+        self.image_pub.publish(self.image)
+
+    def refreshImage(self):
+        half_size = self.image.step // 2
+        self.sector.init(self.sonar.currentAngle(), self.sonar.angleStep())
+        length = len(self.sonar.data)
+        x = 0
+        y = 0
+        more_points, x, y, index = self.sector.nextPoint(x, y)
+        while more_points:
+            if index < length:
+                self.image.data[half_size - y + self.image.step * (half_size - x)] = self.sonar.data[index]
+            more_points, x, y, index = self.sector.nextPoint(x, y)
