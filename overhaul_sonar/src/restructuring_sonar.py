@@ -10,6 +10,8 @@ from ping360_sonar.cfg import sonarConfig
 from ping360_sonar.msg import SonarEcho
 from sonar_interface import SonarInterface, Sector
 
+# TODO: restructure folders and files
+
 
 class Ping360_Node():
     def __init__(self):
