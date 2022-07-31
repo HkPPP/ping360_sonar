@@ -41,13 +41,13 @@ class Ping360_Node():
         # sonar config
         self.gain = rospy.get_param('~gain', 0)                         # range: 0 - 2
         self.frequency = rospy.get_param('~transmitFrequency', 740)
-        self.scan_threshold = int(rospy.get_param('~threshold', 200))   # range: 0 - 255
+        self.scan_threshold = int(rospy.get_param('~threshold', 100))   # range: 0 - 255
         self.angle_step = int(rospy.get_param('~step', 1))              # range: 1 - 20
         self.speed_of_sound = rospy.get_param('~speedOfSound', 1500)    # range: 1350 - 1750
         self.range_max = rospy.get_param('~sonarRange', 2)              # range: 1 - 50
-        self.angle_sector = 360     # range: 60 - 360
-        self.image_size = 500       # range: 200 - 1000
-        self.image_rate = 100       # range: 50 - 2000
+        self.angle_sector = rospy.get_param('~angleSector', 360)     # range: 60 - 360
+        self.image_size = rospy.get_param('~imgSize', 500)       # range: 200 - 1000
+        self.image_rate = rospy.get_param('~imgRate', 100)         # range: 50 - 2000
         self.sonar.configureAngles(self.angle_sector,
                                    self.angle_step,
                                    self.publish_scan)
@@ -55,6 +55,10 @@ class Ping360_Node():
                                        self.frequency,
                                        self.speed_of_sound,
                                        self.range_max)
+
+        # sonar sector
+        self.sector = Sector()
+        self.sector.configure(self.sonar.samples, self.image_size // 2)
 
         # init messages
         frame = "sonar"
@@ -83,23 +87,20 @@ class Ping360_Node():
         self.echo.number_of_samples = self.sonar.samples
         self.echo.transmit_frequency = self.frequency
 
-        # sonar sector
-        self.sector = Sector()
-        self.sector.configure(self.sonar.samples, self.image_size // 2)
+        # Dynamic reconfigure server
+        self.dynamic_reconfig = rospy.get_param('~dynamicReconfig', True)
+        if self.dynamic_reconfig:
+            self.firstRequest = True
+            srv = Server(sonarConfig, self.dynamic_reconfig_sonar)
 
     def refresh(self):
-
         valid, end_turn = self.sonar.read()
-
         if not valid:
             return
-
         if self.publish_echo:
             self.publishEcho()
-
         if self.publish_image:
             self.refreshImage()
-
         if self.publish_scan:
             self.publishScan(end_turn)
 
@@ -165,3 +166,22 @@ class Ping360_Node():
             if index < length:
                 self.image.data[half_size - y + self.image.step * (half_size - x)] = self.sonar.data[index]
             more_points, x, y, index = self.sector.nextPoint(x, y)
+
+    def dynamic_reconfig_sonar(self, config, level):
+        if not self.firstRequest:  # Avoid overiting params set in the launch file
+            self.gain = config['gain']                       # range: 0 - 2
+            self.frequency = config['transmitFrequency']
+            self.scan_threshold = config['threshold']   # range: 0 - 255
+            self.angle_step = config['step']              # range: 1 - 20
+            self.speed_of_sound = config['speedOfSound']    # range: 1350 - 1750
+            self.range_max = config['sonarRange']              # range: 1 - 50
+            self.angle_sector = config['angleSector']      # range: 60 - 360
+            self.sonar.configureAngles(self.angle_sector,
+                                       self.angle_step,
+                                       self.publish_scan)
+            self.sonar.configureTransducer(self.gain,
+                                           self.frequency,
+                                           self.speed_of_sound,
+                                           self.range_max)
+        self.firstRequest = False
+        return config

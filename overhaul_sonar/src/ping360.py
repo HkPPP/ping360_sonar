@@ -49,7 +49,7 @@ def callback(config, level):
         gain = config['gain']
         numberOfSamples = config['numberOfSamples']
         transmitFrequency = config['transmitFrequency']
-        sonarRange = config['range']
+        sonarRange = config['sonarRange']
         speedOfSound = config['speedOfSound']
         samplePeriod = calculateSamplePeriod(
             sonarRange, numberOfSamples, speedOfSound)
