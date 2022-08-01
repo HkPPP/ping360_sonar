@@ -83,7 +83,7 @@ class SonarInterface:
         return self.grad2rad(self.angle)
 
     def angleCount(self):
-        return (self.angle_max - self.angle_min) // self.angle_step
+        return ((self.angle_max - self.angle_min) // self.angle_step) + 1
 
     def angleIndex(self):
         if self.angle_step > 0:
@@ -97,7 +97,7 @@ class SonarInterface:
 
         self.gain = gain
         self.frequency = frequency
-
+        self.max_range = max_range
         self.samples = int(min(self.firmwareMaxSamples, 2 * max_range /
                            (self.firmwareMinSamplePeriod * speed_of_sound * self.samplePeriodTickDuration)))
 

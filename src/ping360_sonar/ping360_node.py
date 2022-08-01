@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from cmath import pi
+from time import sleep
 import rospy
 
 from dynamic_reconfigure.server import Server
@@ -16,21 +18,6 @@ class Ping360_Node:
         # init node
         rospy.init_node('ping360_node')
 
-        # topic publishers
-        self.publish_image = rospy.get_param('~enableImageTopic', True)
-        self.publish_scan = rospy.get_param('~enableScanTopic', True)
-        self.publish_echo = rospy.get_param('~enableDataTopic', True)
-        if self.publish_image:
-            self.image_pub = rospy.Publisher(
-                "/ping360_node/sonar/images", Image, queue_size=1)
-            rospy.Timer(rospy.Duration(self.image_rate / 1000), self.publishImage)
-        if self.publish_scan:
-            self.scan_pub = rospy.Publisher("/ping360_node/sonar/data",
-                                            SonarEcho, queue_size=1)
-        if self.publish_echo:
-            self.echo_pub = rospy.Publisher(
-                "/ping360_node/sonar/scan", LaserScan, queue_size=1)
-
         # init sonar interface
         device = rospy.get_param('~device', "/dev/ttyUSB0")
         baudrate = rospy.get_param('~baudrate', 115200)
@@ -38,7 +25,7 @@ class Ping360_Node:
         connection_type = 'serial'
         self.sonar = SonarInterface(device, baudrate, fallback_emulator, connection_type)
 
-        # sonar config
+        # get sonar configs
         self.gain = rospy.get_param('~gain', 0)                         # range: 0 - 2
         self.frequency = rospy.get_param('~transmitFrequency', 740)
         self.scan_threshold = int(rospy.get_param('~threshold', 100))   # range: 0 - 255
@@ -48,6 +35,23 @@ class Ping360_Node:
         self.angle_sector = rospy.get_param('~angleSector', 360)     # range: 60 - 360
         self.image_size = rospy.get_param('~imgSize', 500)       # range: 200 - 1000
         self.image_rate = rospy.get_param('~imgRate', 100)         # range: 50 - 2000
+
+        # topic publishers
+        self.publish_image = rospy.get_param('~enableImageTopic', True)
+        self.publish_scan = rospy.get_param('~enableScanTopic', True)
+        self.publish_echo = rospy.get_param('~enableDataTopic', True)
+        if self.publish_image:
+            self.image_pub = rospy.Publisher(
+                "/ping360_node/sonar/images", Image, queue_size=1)
+            rospy.Timer(rospy.Duration(self.image_rate / 1000), self.publishImage)
+        if self.publish_scan:
+            self.scan_pub = rospy.Publisher(
+                "/ping360_node/sonar/scan", LaserScan, queue_size=1)
+        if self.publish_echo:
+            self.echo_pub = rospy.Publisher("/ping360_node/sonar/data",
+                                            SonarEcho, queue_size=1)
+
+        # config sonar
         self.sonar.configureAngles(self.angle_sector,
                                    self.angle_step,
                                    self.publish_scan)
@@ -74,6 +78,8 @@ class Ping360_Node:
         self.scan.header.frame_id = frame
         self.scan.range_min = 0.75
         self.scan.range_max = float(self.range_max)
+        self.scan.ranges = []
+        self.scan.intensities = []
         self.scan.time_increment = self.sonar.transmitDuration()
         self.scan.angle_min = self.sonar.angleMin()
         self.scan.angle_max = self.sonar.angleMax()
@@ -93,8 +99,10 @@ class Ping360_Node:
             self.firstRequest = True
             srv = Server(sonarConfig, self.dynamic_reconfig_sonar)
 
-        # run ros
-        rospy.spin()
+        r = rospy.Rate(100)
+        while not rospy.is_shutdown():
+            self.refresh()
+            r.sleep()
 
     def refresh(self):
         valid, end_turn = self.sonar.read()
@@ -135,8 +143,8 @@ class Ping360_Node:
             if self.sonar.data[i] >= self.scan_threshold:
                 dist = self.sonar.rangeFrom(i)
                 if self.scan.range_min <= dist <= self.scan.range_max:
-                    self.scan.ranges = dist
-                    self.scan.intensities = self.sonar.data[i] / 255.
+                    self.scan.ranges[cur] = dist
+                    self.scan.intensities[cur] = self.sonar.data[i] / 255.
                     break
 
         if end_turn and not self.sonar.fullScan():
@@ -151,10 +159,10 @@ class Ping360_Node:
             self.scan.angle_increment = -self.sonar.angleStep()
             self.scan.angle_max -= self.scan.angle_increment
 
-            self.scan.header.stamp = rospy.Time.now()
-            self.scan_pub.publish(self.scan)
+        self.scan.header.stamp = rospy.Time.now()
+        self.scan_pub.publish(self.scan)
 
-    def publishImage(self):
+    def publishImage(self, data):
         self.image.header.stamp = rospy.Time.now()
         self.image_pub.publish(self.image)
 

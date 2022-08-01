@@ -15,11 +15,11 @@ class ImageShow:
 
     def callback(self, data):
         try:
-            cv_image = self.cv_bridge.imgmsg_to_cv2(data, "bgr8")
+            cv_image = self.cv_bridge.imgmsg_to_cv2(data, "mono8")
         except CvBridgeError as e:
             print(e)
 
-        (rows, cols, channels) = cv_image.shape
+        (rows, cols) = cv_image.shape
         if cols > 60 and rows > 60:
             cv2.circle(cv_image, (50, 50), 10, 255)
 
