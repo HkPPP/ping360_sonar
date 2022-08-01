@@ -26,6 +26,7 @@ class Ping360_Node:
         self.sonar = SonarInterface(device, baudrate, fallback_emulator, connection_type)
 
         # get sonar configs
+        self.scan_rate = rospy.get_param('~scanRate', 20)
         self.gain = rospy.get_param('~gain', 0)                         # range: 0 - 2
         self.frequency = rospy.get_param('~transmitFrequency', 740)
         self.scan_threshold = int(rospy.get_param('~threshold', 100))   # range: 0 - 255
@@ -99,7 +100,8 @@ class Ping360_Node:
             self.firstRequest = True
             srv = Server(sonarConfig, self.dynamic_reconfig_sonar)
 
-        r = rospy.Rate(100)
+        # Running node
+        r = rospy.Rate(self.scan_rate)
         while not rospy.is_shutdown():
             self.refresh()
             r.sleep()

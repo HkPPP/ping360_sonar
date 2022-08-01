@@ -6,6 +6,7 @@
         <param name="dynamicReconfig" value="True"/>
         <param name="imgSize" value="500"/>
         <param name="imgRate" value="100"/>
+        <param name="scanRate" value="20"/>
         <param name="gain" value="0"/>
         <param name="step" value="10"/>
         <param name="transmitFrequency" value="740"/>
