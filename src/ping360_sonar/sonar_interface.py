@@ -152,7 +152,7 @@ class SonarInterface:
         end_turn = self.updateAngle()
 
         if self.sonar is not None:
-            print(f'transmit: {self.transmit_duration}')
+            print(f'transmit duration: {self.transmit_duration} microseconds')
 
             self.sonar.control_transducer(
                 0,  # reserved

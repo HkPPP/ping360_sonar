@@ -12,6 +12,8 @@ from ping360_sonar.cfg import sonarConfig
 from ping360_sonar.msg import SonarEcho
 from sonar_interface import SonarInterface, Sector
 
+# TODO: test transmitFrequency vs scanRate
+
 
 class Ping360_Node:
     def __init__(self):
@@ -104,7 +106,7 @@ class Ping360_Node:
         r = rospy.Rate(self.scan_rate)
         while not rospy.is_shutdown():
             self.refresh()
-            r.sleep()
+            # r.sleep()
 
     def refresh(self):
         valid, end_turn = self.sonar.read()
