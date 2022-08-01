@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from brping import Ping360
 from numpy import pi, sqrt, tan, cos, sign
