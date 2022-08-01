@@ -13,7 +13,7 @@ from sonar_interface import SonarInterface, Sector
 # TODO: restructure folders and files
 
 
-class Ping360_Node():
+class Ping360_Node:
     def __init__(self):
         # init node
         rospy.init_node('ping360_node')
@@ -94,6 +94,9 @@ class Ping360_Node():
         if self.dynamic_reconfig:
             self.firstRequest = True
             srv = Server(sonarConfig, self.dynamic_reconfig_sonar)
+
+        # run ros
+        rospy.spin()
 
     def refresh(self):
         valid, end_turn = self.sonar.read()
@@ -187,3 +190,7 @@ class Ping360_Node():
                                            self.range_max)
         self.firstRequest = False
         return config
+
+
+if __name__ == "__main__":
+    ping360 = Ping360_Node()
